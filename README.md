@@ -11,4 +11,7 @@ Research question: Do you get the same results when performing match-adjusted in
 
 ### Scripts 
 
+* All code is stored in the "R" folder. 
+* All functions are stored within the "R/functions" folder.
+
 ### Data 
