@@ -40,7 +40,7 @@ vignettes/*.pdf
 .Renviron
 
 # pkgdown site
-docs/
+# docs/
 
 # translation temp files
 po/*~
@@ -51,5 +51,5 @@ rsconnect/
 # Do not git track any of the inputs or outputs, so that the only thing 
 # tracked is code!
 output/*
-data/*
+# data/*
 

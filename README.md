@@ -15,3 +15,8 @@ Research question: Do you get the same results when performing match-adjusted in
 * All functions are stored within the "R/functions" folder.
 
 ### Data 
+
+### Docs
+
+* Includes documents such as .docx files and PDFs
+* Statistical analysis plan
