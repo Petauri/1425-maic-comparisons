@@ -29,17 +29,6 @@ pacman::p_load(
 )
 
 #***********************************************************************
-# Directories --------------------------------------------------------------
-#***********************************************************************
-
-# results folder - 1336 Jazz 2L BTC and 1L GEA\3. Project work\2. BTC Tasks\3. HTA stats and CEM\3. R outputs
-
-# if (!exists("ild_folder")) {ild_folder <- rstudioapi::selectDirectory()}
-# if (!exists("base_folder")) {base_folder <- rstudioapi::selectDirectory()}
-# if (!exists("results_folder")) {results_folder <- rstudioapi::selectDirectory()}
-  
-
-#***********************************************************************
 # Delta Hat options and functions -----------------------------------------
 #***********************************************************************
 
@@ -83,9 +72,24 @@ for (i in 1:num_cols) {
 #***********************************************************************
 
 # multiply all characteristics by 100 for easier interpretation 
-
-dat_s_22 <- dat_s_22 %>%
-  dplyr::mutate(across(matches("characteristic_[0-9]+"), ~ .*100))
+# dat_s_22 <- dat_s_22 %>%
+#   dplyr::mutate(across(matches("characteristic_[0-9]+"), ~ .*100))
 
 dat_s_22 %>%
-summary(across(matches("characteristic_[0-9]+"), median))
+summary() 
+
+# Remove ALD variables now as we technically don't have these in the data!
+
+dat_s_22 <- dat_s_22 %>%
+  dplyr::select(-contains("control_"))
+
+# Replace "intervention" with "median_intervention" in column names
+# to match the variables that are fed from the extraction sheet
+
+colnames(dat_s_22) <- gsub("intervention_characteristic", "median_characteristic", colnames(dat_s_22))
+
+#***********************************************************************
+# Save data ------------------------------------------------------------
+#***********************************************************************
+
+write_rds(dat_s_22, file.path("data", "analysis-derived" , "dat_scenario_22_derived.Rda"))

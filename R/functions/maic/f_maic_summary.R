@@ -69,9 +69,12 @@ f_maic_summary <- function(ild_df, match_characteristics, weighted, weights) {
       relocate(n_patients, .before = 2) %>%
       # ESS
       mutate(ESS = round2(ESS(ild_subset$weights), digits = 1)) %>%
-      relocate(ESS, .before = 3)
-      # mutate(n_patients = paste0(n_patients, " (", ESS, ")")) %>%
-      # dplyr::select(-c("ESS"))
+      relocate(ESS, .before = 3) %>%
+      # ESS %
+      mutate("ESS (%)" = (ESS / n_patients) * 100) %>%
+      relocate("ESS (%)", .before = 4)
+    # mutate(n_patients = paste0(n_patients, " (", ESS, ")")) %>%
+    # dplyr::select(-c("ESS"))
     
   } else {
     
@@ -82,7 +85,10 @@ f_maic_summary <- function(ild_df, match_characteristics, weighted, weights) {
       relocate(n_patients, .before = 2) %>%
       # ESS
       mutate(ESS = NA) %>%
-      relocate(ESS, .before = 3)
+      relocate(ESS, .before = 3) %>%
+      # ESS %
+      mutate("ESS (%)" = NA) %>%
+      relocate("ESS (%)", .before = 4)
     
   }
   
@@ -91,6 +97,4 @@ f_maic_summary <- function(ild_df, match_characteristics, weighted, weights) {
   suppressWarnings(rm(df_final, df_filtered, df_long, summary_df, summary_wide_t, ild_long, ild_tibble, ild_subset))
   
 } # End of function 
-  
-
 
