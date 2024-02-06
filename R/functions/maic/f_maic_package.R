@@ -222,8 +222,8 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   # tidy and format results 
   
   # Create data frame with summary of outcomes for weighted, unweighted and comparator group
-  outcome_names <- c("Treated outcome", 
-                     "Intervention outcome")
+  outcome_names <- c("Treated median survival (months)", 
+                     "Intervention median survival (months)")
   
   unweighted_outcomes <- c(paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
                                   round(results$ci_lower[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ", ",
@@ -259,6 +259,7 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   
   outcome_summary <- data.frame(outcome_names, unweighted_outcomes, weighted_outcomes, ald_outcomes)
   colnames(outcome_summary) <- c("Outcome", "Unweighted (Population A)", "Weighted (Population A)", "Comparator (Population B)")
+  outcome_summary$Match <- paste0("Match ", match_no)
   
   #***********************************************************************
   # SAVE RESULTS -----------------------------------------------
@@ -281,6 +282,6 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   # completed is a TRUE/FALSE value on whether the MAIC was successful on given run (determined by weights > 0)
   # filing name is the file name from the ald_data 
   
-  return(list(completed = complete, matching_vars = matching_vars))
+  return(list(completed = complete, matching_vars = matching_vars, outcome_summary = outcome_summary))
 
 } # End of function 

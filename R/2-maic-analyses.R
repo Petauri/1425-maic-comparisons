@@ -161,6 +161,7 @@ matches_list <- mget(match_vectors)
 
 # Initialize an empty list to store results
 results_list <- list()
+outcome_list <- list()
 
 # Loop through matches_list
 for (i in seq_along(matches_list)) {
@@ -182,11 +183,13 @@ for (i in seq_along(matches_list)) {
   
   # Add the result to the list
   results_list[[i]] <- result
+  
+  outcome_list[[i]] <- result$outcome_summary
 }
 
 # Compile the results into a dataframe
 result_df <- do.call(rbind, lapply(results_list, function(x) data.frame(x)))
-
+outcome_df <- do.call(rbind, lapply(outcome_list, function(x) data.frame(x)))
 # Save the dataframe to an Excel file
 
 write.xlsx(result_df,
@@ -194,6 +197,12 @@ write.xlsx(result_df,
                      version, 
                      "1. maic package",
                      "maic_summary_run.xlsx"))
+
+write.xlsx(outcome_df,
+           file.path(results_folder,
+                     version, 
+                     "1. maic package",
+                     "maic_outcome_summary.xlsx"))
 
 #***********************************************************************
 # GENERATE SUMMARY MAIC FIGURE -------------------------------------------
@@ -204,6 +213,6 @@ write.xlsx(result_df,
 directory_path <- file.path(results_folder, version, "1. maic package")
 label_name <- ald_data_t$labelling_name
 
-f_maic_pathway_figure(directory_name = directory_name, directory_path = directory_path, label_name = label_name)
+f_maic_pathway_figure(directory_path = directory_path, label_name = label_name)
 # END
 

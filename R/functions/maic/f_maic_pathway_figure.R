@@ -1,4 +1,4 @@
-f_maic_pathway_figure <- function(directory_name, directory_path, label_name){
+f_maic_pathway_figure <- function(directory_path, label_name){
   
   #***********************************************************************
   # Read results in and create table -------------------------------------
@@ -164,10 +164,13 @@ f_maic_pathway_figure <- function(directory_name, directory_path, label_name){
       # and same for ESS %
       fmt_number(rows = (results_df$Characteristic == "ESS (%)"),
                  decimals = 0) %>%
+      # and same for ESS 
+      fmt_number(rows = (results_df$Characteristic == "ESS"),
+                 decimals = 0) %>%
       # Center align column names 
-      tab_style(
-        style = cell_text(align = "center"),
-        locations = cells_column_labels(columns = everything())) %>%
+      # tab_style(
+      #   style = cell_text(align = "center"),
+      #   locations = cells_column_labels(columns = everything())) %>%
       # Font size and style 
       opt_table_font(
         font = "Trebuchet MS",
