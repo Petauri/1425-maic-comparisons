@@ -222,7 +222,7 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   # tidy and format results 
   
   # Create data frame with summary of outcomes for weighted, unweighted and comparator group
-  outcome_names <- c("Treated median survival (months)", 
+  outcome_names <- c("Untreated median survival (months)", 
                      "Intervention median survival (months)")
   
   unweighted_outcomes <- c(paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
