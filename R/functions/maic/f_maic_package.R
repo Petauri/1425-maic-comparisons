@@ -4,9 +4,9 @@
 
 # ild_dat <- ild_dat
 # ald_dat <- ald_data_t
-# matching_vars <- match_maic_5
+# matching_vars <- match_maic_4
 # comparator_drug <- "Treatment X"
-# match_no <- 5
+# match_no <- 4
 
 f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars, comparator_drug, match_no) {
 
@@ -93,7 +93,7 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   
   # Create MAIC input 
   
-  maic_input <- createMAICInput(index = ild_dat, # Think about how to do this without explicitly calling the variables out ??
+  maic_input <- createMAICInput(index = ild_dat, 
                                 target = maic_target_set,
                                 dictionary = maic_dict_set,
                                 matching.variables = maic_dict_set$match.id)
