@@ -109,9 +109,9 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
     suppressWarnings(rm(maic_dict_set, maic_input, maic)) 
     
-    #***********************************************************************
-    # ROCHE MAIC package ---------------------------------------------------------
-    #***********************************************************************
+  #***********************************************************************
+  # ROCHE MAIC package ---------------------------------------------------------
+  #***********************************************************************
     
   } else if (maic_package == "MAIC_roche") {
     
@@ -119,7 +119,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
     for (var in matching_vars) {
       ild_dat <- ild_dat %>%
-        mutate(!!paste0(var, "_centered") := !!sym(var) - ald_data_t[[var]])
+        mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
     }
     
     matching_vars_roche <- paste0(matching_vars, "_centered")
@@ -134,6 +134,30 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     ESS <- MAIC::estimate_ess(roche_weights$analysis_data)
     
     weights_from_maic <- roche_weights$analysis_data$wt
+    
+  #***********************************************************************
+  # Maicplus package -----------------------------------------------------
+  #***********************************************************************
+    
+  } else if (maic_package == "Maicplus") {
+    
+    # Make centered variables
+    
+    for (var in matching_vars) {
+      ild_dat <- ild_dat %>%
+        mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
+    }
+    
+    matching_vars_centered <- paste0(matching_vars, "_centered")
+    
+    # estimate weights 
+    
+    maicplus_weights <- maicplus::estimate_weights(
+      data = ild_dat,
+      centered_colnames = matching_vars_centered
+    )
+    
+    weights_from_maic <- maicplus_weights$data$weights
     
   }
   
