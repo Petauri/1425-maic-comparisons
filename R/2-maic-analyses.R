@@ -26,7 +26,8 @@ pacman::p_load(
   purrr,
   ggsurvfit,
   readxl,
-  gt
+  gt,
+  MAIC
 )
 
 #***********************************************************************
@@ -51,11 +52,12 @@ source("R/functions/misc/rounding/f_func_misc_rounding.R")
 source("R/functions/maic/f_maic_package.R")
 source("R/functions/maic/f_maic_summary.R")
 source("R/functions/maic/f_maic_pathway_figure.R")
+source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-1"
-dir.create(file.path(results_folder, version, "1. maic package"),
+version <- "v0-2"
+dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
 #***********************************************************************
@@ -110,46 +112,46 @@ for (n_col in n_columns) {
 }
 
 #***********************************************************************
-# Run MAIC ---------------------------------------------------------
+# MAIC characteristics -------------------------------------------------
 #***********************************************************************
 
 # characteristics we want to show differences between (regardless of matching)
 
-characteristic_vars <- c("median_characteristic_1",
-                         "median_characteristic_2",
-                         "median_characteristic_3",
-                         "median_characteristic_4",
-                         "median_characteristic_5",
-                         "median_characteristic_6")
+characteristic_vars <- c("mean_characteristic_1",
+                         "mean_characteristic_2",
+                         "mean_characteristic_3",
+                         "mean_characteristic_4",
+                         "mean_characteristic_5",
+                         "mean_characteristic_6")
 
 # Set match characteristics
 
-match_maic_1 <- c("median_characteristic_1")
+match_maic_1 <- c("mean_characteristic_1")
 
-match_maic_2 <- c("median_characteristic_1", 
-                  "median_characteristic_2")
+match_maic_2 <- c("mean_characteristic_1", 
+                  "mean_characteristic_2")
 
-match_maic_3 <- c("median_characteristic_1",
-                  "median_characteristic_2",
-                  "median_characteristic_3")
+match_maic_3 <- c("mean_characteristic_1",
+                  "mean_characteristic_2",
+                  "mean_characteristic_3")
 
-match_maic_4 <- c("median_characteristic_1",
-                  "median_characteristic_2",
-                  "median_characteristic_3",
-                  "median_characteristic_4")
+match_maic_4 <- c("mean_characteristic_1",
+                  "mean_characteristic_2",
+                  "mean_characteristic_3",
+                  "mean_characteristic_4")
 
-# match_maic_5 <- c("median_characteristic_1",
-#                   "median_characteristic_2",
-#                   "median_characteristic_3",
-#                   "median_characteristic_4",
-#                   "median_characteristic_5")
+# match_maic_5 <- c("mean_characteristic_1",
+#                   "mean_characteristic_2",
+#                   "mean_characteristic_3",
+#                   "mean_characteristic_4",
+#                   "mean_characteristic_5")
 # 
-# match_maic_6 <- c("median_characteristic_1",
-#                   "median_characteristic_2",
-#                   "median_characteristic_3",
-#                   "median_characteristic_4",
-#                   "median_characteristic_5",
-#                   "median_characteristic_6")
+# match_maic_6 <- c("mean_characteristic_1",
+#                   "mean_characteristic_2",
+#                   "mean_characteristic_3",
+#                   "mean_characteristic_4",
+#                   "mean_characteristic_5",
+#                   "mean_characteristic_6")
 
 # Get all variables in the environment that start with "match_"
 match_vectors <- ls(pattern = "^match_maic")
@@ -157,62 +159,75 @@ match_vectors <- ls(pattern = "^match_maic")
 # Combine into a list
 matches_list <- mget(match_vectors)
 
-# Run  MAIC function with custom inputs
+#***********************************************************************
+# Run MAIC ---------------------------------------------------------
+#***********************************************************************
 
-# Initialize an empty list to store results
-results_list <- list()
-outcome_list <- list()
+# Iterate over maic packages 
 
-# Loop through matches_list
-for (i in seq_along(matches_list)) {
-  # Call the function with the current matching_vars and match_no
-  result <- f_maic_package(
-    ild_dat = ild_dat,
-    ald_dat = ald_data_t,
-    matching_vars = matches_list[[i]],
-    characteristic_vars = characteristic_vars,
-    comparator_drug = "Treatment X",
-    match_no = i
-  )
+maic_packages <- c("maic", "MAIC_roche")
+
+for (maic_package in maic_packages) {
   
-  # Add the match_no to the result
-  result$match_no <- i
+  # Run  MAIC function with custom inputs
   
-  # Modify the "matching_vars" in the result to a comma-separated string
-  result$matching_vars <- toString(result$matching_vars)
+  # Initialize an empty list to store results
+  results_list <- list()
+  outcome_list <- list()
   
-  # Add the result to the list
-  results_list[[i]] <- result
+  # Loop through matches_list
+  for (i in seq_along(matches_list)) {
+    # Call the function with the current matching_vars and match_no
+    result <- f_multi_maic_package(
+      maic_package = maic_package,
+      ild_dat = ild_dat,
+      ald_dat = ald_data_t,
+      matching_vars = matches_list[[i]],
+      characteristic_vars = characteristic_vars,
+      comparator_drug = "Treatment X",
+      match_no = i
+    )
+    
+    # Add the match_no to the result
+    result$match_no <- i
+    
+    # Modify the "matching_vars" in the result to a comma-separated string
+    result$matching_vars <- toString(result$matching_vars)
+    
+    # Add the result to the list
+    results_list[[i]] <- result
+    
+    outcome_list[[i]] <- result$outcome_summary
+  }
   
-  outcome_list[[i]] <- result$outcome_summary
+  # Compile the results into a dataframe
+  result_df <- do.call(rbind, lapply(results_list, function(x) data.frame(x)))
+  outcome_df <- do.call(rbind, lapply(outcome_list, function(x) data.frame(x)))
+  # Save the dataframe to an Excel file
+  
+  write.xlsx(result_df,
+             file.path(results_folder,
+                       version, 
+                       maic_package,
+                       "maic_summary_run.xlsx"))
+  
+  write.xlsx(outcome_df,
+             file.path(results_folder,
+                       version, 
+                       maic_package,
+                       "maic_outcome_summary.xlsx"))
+  
+  #***********************************************************************
+  # GENERATE SUMMARY MAIC FIGURE -------------------------------------------
+  #***********************************************************************
+  
+  # Inputs needed for function 
+  
+  directory_path <- file.path(results_folder, version, maic_package)
+  label_name <- ald_data_t$labelling_name
+  
+  f_maic_pathway_figure(directory_path = directory_path, label_name = label_name)
+  
 }
 
-# Compile the results into a dataframe
-result_df <- do.call(rbind, lapply(results_list, function(x) data.frame(x)))
-outcome_df <- do.call(rbind, lapply(outcome_list, function(x) data.frame(x)))
-# Save the dataframe to an Excel file
-
-write.xlsx(result_df,
-           file.path(results_folder,
-                     version, 
-                     "1. maic package",
-                     "maic_summary_run.xlsx"))
-
-write.xlsx(outcome_df,
-           file.path(results_folder,
-                     version, 
-                     "1. maic package",
-                     "maic_outcome_summary.xlsx"))
-
-#***********************************************************************
-# GENERATE SUMMARY MAIC FIGURE -------------------------------------------
-#***********************************************************************
-
-# Inputs needed for function 
-
-directory_path <- file.path(results_folder, version, "1. maic package")
-label_name <- ald_data_t$labelling_name
-
-f_maic_pathway_figure(directory_path = directory_path, label_name = label_name)
 # END
-

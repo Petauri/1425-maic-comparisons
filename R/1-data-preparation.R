@@ -86,7 +86,7 @@ dat_s_22 <- dat_s_22 %>%
 # Replace "intervention" with "median_intervention" in column names
 # to match the variables that are fed from the extraction sheet
 
-colnames(dat_s_22) <- gsub("intervention_characteristic", "median_characteristic", colnames(dat_s_22))
+colnames(dat_s_22) <- gsub("intervention_characteristic", "mean_characteristic", colnames(dat_s_22))
 
 #***********************************************************************
 # Save data ------------------------------------------------------------

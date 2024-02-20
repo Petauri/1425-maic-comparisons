@@ -8,8 +8,8 @@
 # comparator_drug <- "Treatment X"
 # match_no <- 4
 
-f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars, comparator_drug, match_no) {
-
+f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, characteristic_vars, comparator_drug, match_no) {
+  
   #' @description This function performs the MAIC analyses for the Jazz project. In its current form, the function is not directly reusable, but with further work and refinements, it could be made more so. 
   #' for example, there are file paths in the function at the moment only relevant to Jazz project. This is v0.1. Future versions can address these issues. 
   #' The function uses (and therefore depends on) various other functions such as the km plot function, all of which are stored within this repository. 
@@ -36,75 +36,106 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   #'
   #' @details Author: Kurt Taylor, Delta Hat
   
-  
-  # Filter ILD data ---------------------------------------------------------
-  
   #***********************************************************************
-  # Get MAIC weights ---------------------------------------------------------
+  # maic package ---------------------------------------------------------
   #***********************************************************************
-  
-  # select characteristics to match on and filer to the comparator we are using
-  
-  maic_target <- ald_dat %>% 
-    dplyr::filter(comparator == comparator_drug) %>%
-    dplyr::select(all_of(matching_vars)) 
-  
-  maic_dict <- data.frame("match.id" = names(maic_target),
-                          "target.variable" = matching_vars,
-                          "index.variable" = matching_vars,
-                          "match.type" = matching_vars,
-                          stringsAsFactors = FALSE)
-  
-  match_types <- c("proportion", "mean", "median")
-  
-  # Create a regular expression pattern to capture the match type
-  pattern <- paste0(".*(", paste(match_types, collapse = "|"), ").*")
-  
-  # Use str_replace to replace the entire string with the captured match type
-  maic_dict$match.type <- str_replace(maic_dict$match.type, pattern, "\\1")
-  
-  # if anything isn't reported - given we are iterating through, get ready to omit from matching
-  
-  maic_valid<- as.data.frame(!is.na(maic_target)) 
-  
-  # Set items to FALSE to not match on them, some of which are conditional on if better data is available. 
-  
-  # Not needed for now but can add this code later as and when needed 
-  
-  # Subset the maic_target and maic_dict dataframes to only include VALID variables (i.e., variables we have data on)
-  
-  maic_valid <- as.data.frame(t(maic_valid))
-  maic_valid$match.id <- rownames(maic_valid)
-  maic_valid <- maic_valid %>%
-    dplyr::rename("valid" = "V1")
-  
-  maic_dict_set <- maic_dict %>%
-    left_join(maic_valid) %>%
-    dplyr::filter(valid == TRUE)
-  
-  # Remove any that are NA (which means we don't have data and therefore cannot run MAIC)
-  
-  maic_target_set <- maic_target %>%
-    select_if(~ !any(is.na(.)))
-  
-  # maic_target_set needs to be a list for the function - setting it to numeric as this is what class the example is in (see: ? createMAICInput )
-  
-  class(maic_target_set) <- "numeric"
-  
-  # Create MAIC input 
-  
-  maic_input <- createMAICInput(index = ild_dat, 
-                                target = maic_target_set,
-                                dictionary = maic_dict_set,
-                                matching.variables = maic_dict_set$match.id)
-  
-  maic <- maicWeight(maic_input) #generates the weights
-  
-  weights_from_maic <- if (sum(maic) == 0) {NA} else {maic} #save weights to my results sheet, unless the sum is 0 i.e. it didn't converge
-  
-  # Remove objects that we no longer need to try and free up memory
-  
-  suppressWarnings(rm(maic_dict_set, maic_input, maic))
+
+  if(maic_package == "maic") {
+    
+    # Filter ILD data ---------------------------------------------------------
+    
+    # Get MAIC weights ---------------------------------------------------------
+    
+    # select characteristics to match on and filer to the comparator we are using
+    
+    maic_target <- ald_dat %>% 
+      dplyr::filter(comparator == comparator_drug) %>%
+      dplyr::select(all_of(matching_vars)) 
+    
+    maic_dict <- data.frame("match.id" = names(maic_target),
+                            "target.variable" = matching_vars,
+                            "index.variable" = matching_vars,
+                            "match.type" = matching_vars,
+                            stringsAsFactors = FALSE)
+    
+    match_types <- c("proportion", "mean", "median")
+    
+    # Create a regular expression pattern to capture the match type
+    pattern <- paste0(".*(", paste(match_types, collapse = "|"), ").*")
+    
+    # Use str_replace to replace the entire string with the captured match type
+    maic_dict$match.type <- str_replace(maic_dict$match.type, pattern, "\\1")
+    
+    # if anything isn't reported - given we are iterating through, get ready to omit from matching
+    
+    maic_valid<- as.data.frame(!is.na(maic_target)) 
+    
+    # Set items to FALSE to not match on them, some of which are conditional on if better data is available. 
+    
+    # Not needed for now but can add this code later as and when needed 
+    
+    # Subset the maic_target and maic_dict dataframes to only include VALID variables (i.e., variables we have data on)
+    
+    maic_valid <- as.data.frame(t(maic_valid))
+    maic_valid$match.id <- rownames(maic_valid)
+    maic_valid <- maic_valid %>%
+      dplyr::rename("valid" = "V1")
+    
+    maic_dict_set <- maic_dict %>%
+      left_join(maic_valid) %>%
+      dplyr::filter(valid == TRUE)
+    
+    # Remove any that are NA (which means we don't have data and therefore cannot run MAIC)
+    
+    maic_target_set <- maic_target %>%
+      select_if(~ !any(is.na(.)))
+    
+    # maic_target_set needs to be a list for the function - setting it to numeric as this is what class the example is in (see: ? createMAICInput )
+    
+    class(maic_target_set) <- "numeric"
+    
+    # Create MAIC input 
+    
+    maic_input <- createMAICInput(index = ild_dat, 
+                                  target = maic_target_set,
+                                  dictionary = maic_dict_set,
+                                  matching.variables = maic_dict_set$match.id)
+    
+    maic <- maicWeight(maic_input) #generates the weights
+    
+    weights_from_maic <- if (sum(maic) == 0) {NA} else {maic} #save weights to my results sheet, unless the sum is 0 i.e. it didn't converge
+    
+    # Remove objects that we no longer need to try and free up memory
+    
+    suppressWarnings(rm(maic_dict_set, maic_input, maic)) 
+    
+    #***********************************************************************
+    # ROCHE MAIC package ---------------------------------------------------------
+    #***********************************************************************
+    
+  } else if (maic_package == "MAIC_roche") {
+    
+    # Make centered variables like in the vignette  
+    
+    for (var in matching_vars) {
+      ild_dat <- ild_dat %>%
+        mutate(!!paste0(var, "_centered") := !!sym(var) - ald_data_t[[var]])
+    }
+    
+    matching_vars_roche <- paste0(matching_vars, "_centered")
+      
+    # estimate weights 
+    roche_weights <- MAIC::estimate_weights(
+      intervention_data = ild_dat,
+      matching_vars = matching_vars_roche
+    )
+    
+    # Get ESS using in built function
+    ESS <- MAIC::estimate_ess(roche_weights$analysis_data)
+    
+    weights_from_maic <- roche_weights$analysis_data$wt
+    
+  }
   
   #***********************************************************************
   # Generate summary characteristics table ---------------------------------------------------------
@@ -180,7 +211,7 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   #***********************************************************************
   # ANALYSIS -----------------------------------------------
   #***********************************************************************
-
+  
   # Create new dataset to include weights and weighted outcomes
   ild_dat <- ild_dat %>%
     # Add each patients weight to the dataset
@@ -191,7 +222,7 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   # Define the variables
   variables <- c("intervention_outcome_pop_a_untreated", 
                  "intervention_outcome_pop_a_with_intervention", 
-                   "w_intervention_outcome_pop_a_untreated", 
+                 "w_intervention_outcome_pop_a_untreated", 
                  "w_intervention_outcome_pop_a_with_intervention")
   
   # Function to calculate mean and confidence interval
@@ -228,34 +259,34 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   unweighted_outcomes <- c(paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
                                   round(results$ci_lower[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ", ",
                                   round(results$ci_upper[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ")"
-                                  ),
-                           
-                           paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
-                                  round(results$ci_lower[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
-                                  round(results$ci_upper[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
-                                  )
-                           )
+  ),
+  
+  paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
+         round(results$ci_lower[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
+         round(results$ci_upper[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
+  )
+  )
   
   
   weighted_outcomes <- c(paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
                                 round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), ", ",
                                 round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), ")"
-                                ),
-                         paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
-                                round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
-                                round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
-                                )
-                         )
+  ),
+  paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
+         round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
+         round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
+  )
+  )
   
   ald_outcomes <- c(paste0(round(ald_outcomes_t$mean_outcome_untreated, digits = 3), " (95% CI: ",
-                                round(ald_outcomes_t$untreated_ci_lower, digits = 3), ", ",
-                                round(ald_outcomes_t$untreated_ci_upper, digits = 3), ")"
-                           ),
-                    paste0(round(ald_outcomes_t$mean_outcome_intervention, digits = 3), " (95% CI: ",
-                           round(ald_outcomes_t$intervention_ci_lower, digits = 3), ", ",
-                           round(ald_outcomes_t$intervention_ci_upper, digits = 3), ")"
-                           )
-                    )
+                           round(ald_outcomes_t$untreated_ci_lower, digits = 3), ", ",
+                           round(ald_outcomes_t$untreated_ci_upper, digits = 3), ")"
+  ),
+  paste0(round(ald_outcomes_t$mean_outcome_intervention, digits = 3), " (95% CI: ",
+         round(ald_outcomes_t$intervention_ci_lower, digits = 3), ", ",
+         round(ald_outcomes_t$intervention_ci_upper, digits = 3), ")"
+  )
+  )
   
   outcome_summary <- data.frame(outcome_names, unweighted_outcomes, weighted_outcomes, ald_outcomes)
   colnames(outcome_summary) <- c("Outcome", "Unweighted (Population A)", "Weighted (Population A)", "Comparator (Population B)")
@@ -265,6 +296,11 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   # SAVE RESULTS -----------------------------------------------
   #***********************************************************************
   
+  # Make directory 
+  
+  dir.create(file.path(results_folder, version, maic_package),
+             showWarnings = FALSE, recursive = TRUE)
+  
   wb <- createWorkbook()
   addWorksheet(wb, sheetName = "Characteristics")
   addWorksheet(wb, sheetName = "Outcomes")
@@ -272,7 +308,7 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   writeDataTable(wb, sheet = "Outcomes", x = outcome_summary, startCol = 1, startRow = 1)
   saveWorkbook(wb, file = file.path(results_folder,
                                     version, 
-                                    "1. maic package",
+                                    maic_package,
                                     paste0("match-", match_no, ".xlsx")),
                overwrite = TRUE)
   
@@ -283,5 +319,5 @@ f_maic_package <- function(ild_dat, ald_dat, matching_vars, characteristic_vars,
   # filing name is the file name from the ald_data 
   
   return(list(completed = complete, matching_vars = matching_vars, outcome_summary = outcome_summary))
-
+  
 } # End of function 
