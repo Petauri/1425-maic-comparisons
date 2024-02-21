@@ -159,6 +159,29 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
     weights_from_maic <- maicplus_weights$data$weights
     
+  #***********************************************************************
+  # MaicChecks package -----------------------------------------------------
+  #***********************************************************************
+    
+  } else if (maic_package == "maicChecks") {
+    
+    # Need to filter the datasets for this package so that the only variables in
+    # both the IPD and ALD are those that we are matching on as there is no option
+    # to specify matching variables by the looks of it... the function just takes
+    # all the variables in the df 
+    
+    ild_maic_check <- ild_dat %>%
+      dplyr::select(all_of(matching_vars))
+    
+    ald_maic_check <- ald_dat %>%
+      dplyr::select(all_of(matching_vars))
+    
+    # Weights
+    
+    maic_maic_check <- maicChecks::maicWt(ild_maic_check, ald_maic_check)
+    
+    weights_from_maic <- maic_maic_check$maic.wt
+    
   }
   
   #***********************************************************************
