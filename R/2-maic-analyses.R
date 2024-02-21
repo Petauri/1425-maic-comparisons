@@ -181,7 +181,12 @@ matches_list <- mget(match_vectors)
 
 # Iterate over maic packages 
 
-maic_packages <- c("maic", "MAIC_roche", "Maicplus")
+maic_packages <- c(
+  "maic", 
+  "MAIC_roche", 
+  "Maicplus",
+  "maicChecks"
+)
 
 for (maic_package in maic_packages) {
   
