@@ -5,6 +5,23 @@
 # Libraries ---------------------------------------------------------------
 #***********************************************************************
 
+# Roche 
+
+devtools::install_github(
+  "roche/MAIC",
+  ref = "main"
+)
+
+# Maicplus
+
+devtools::install_github(
+  "hta-pharma/maicplus",
+  ref = "main"
+)
+
+library(MAIC)
+library(maicplus)
+
 pacman::p_load(
   haven, 
   dplyr, 
@@ -26,8 +43,7 @@ pacman::p_load(
   purrr,
   ggsurvfit,
   readxl,
-  gt,
-  MAIC
+  gt
 )
 
 #***********************************************************************
@@ -165,7 +181,7 @@ matches_list <- mget(match_vectors)
 
 # Iterate over maic packages 
 
-maic_packages <- c("maic", "MAIC_roche")
+maic_packages <- c("maic", "MAIC_roche", "Maicplus")
 
 for (maic_package in maic_packages) {
   
@@ -226,7 +242,9 @@ for (maic_package in maic_packages) {
   directory_path <- file.path(results_folder, version, maic_package)
   label_name <- ald_data_t$labelling_name
   
-  f_maic_pathway_figure(directory_path = directory_path, label_name = label_name)
+  f_maic_pathway_figure(directory_path = directory_path,
+                        label_name = label_name,
+                        maic_package = maic_package)
   
 }
 
