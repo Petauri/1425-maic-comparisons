@@ -131,7 +131,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     )
     
     # Get ESS using in built function
-    ESS <- MAIC::estimate_ess(roche_weights$analysis_data)
+    print(MAIC::estimate_ess(roche_weights$analysis_data))
     
     weights_from_maic <- roche_weights$analysis_data$wt
     

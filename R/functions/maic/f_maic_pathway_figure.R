@@ -1,4 +1,4 @@
-f_maic_pathway_figure <- function(directory_path, label_name){
+f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
   
   #***********************************************************************
   # Read results in and create table -------------------------------------
@@ -209,13 +209,14 @@ f_maic_pathway_figure <- function(directory_path, label_name){
   
   # PNG
   gtExtras::gtsave_extra(gt_table, 
-                         file = file.path(paste0(directory_path), "maic_markup.png"),
+                         file = file.path(paste0(directory_path),
+                                          paste0("maic_markup_", maic_package, ".png")),
                          expand = c(0, 1000, 0, 1000))
   # DOCX
-  gtsave(gt_table,
-         file = file.path(paste0(directory_path), "maic_markup.docx"))
+  # gtsave(gt_table,
+  #        file = file.path(paste0(directory_path), "maic_markup.docx"))
   # HTML
-  gtsave(gt_table,
-         file = file.path(paste0(directory_path), "maic_markup.html"))
+  # gtsave(gt_table,
+  #        file = file.path(paste0(directory_path), "maic_markup.html"))
   
 } # end of function
