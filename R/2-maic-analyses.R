@@ -72,7 +72,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-2"
+version <- "v0-3"
 dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
@@ -138,7 +138,15 @@ characteristic_vars <- c("mean_characteristic_1",
                          "mean_characteristic_3",
                          "mean_characteristic_4",
                          "mean_characteristic_5",
-                         "mean_characteristic_6")
+                         "mean_characteristic_6",
+                         "median_characteristic_1",
+                         "median_characteristic_2",
+                         "median_characteristic_3",
+                         "median_characteristic_4",
+                         "median_characteristic_5",
+                         "median_characteristic_6",
+                         "proportion_characteristic_1_yes",
+                         "proportion_characteristic_2_yes")
 
 # Set match characteristics
 
