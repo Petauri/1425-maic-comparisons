@@ -47,11 +47,22 @@ s_daysinmonth <- 365.25/12 # days to month and vice versa
 
 dat_s_22 <- read.csv(file.path("data", "ILD", "Hatswell-2020-VIH-Simulation", 
                                "scenarios", "Scenario22- 2 high imp, 2 low im.csv")) %>%
-  row_to_names(row_number = 1) %>%
-  clean_names() %>%
+  janitor::row_to_names(row_number = 1) %>%
+  janitor::clean_names() %>%
   dplyr::rename("pid" = "x1") %>%
   dplyr::mutate_if(is.character, as.numeric)
 
+# Create a couple of factor variables that we can use to match on
+
+dat_s_22 <- dat_s_22 %>%
+  dplyr::mutate(intervention_characteristic_1_bin = ntile(intervention_characteristic_1, 2)) %>%
+  dplyr::mutate(intervention_characteristic_1_bin = ifelse(intervention_characteristic_1_bin == 2, 1, 0)) %>%
+  dplyr::mutate(intervention_characteristic_2_bin = ntile(intervention_characteristic_2, 2)) %>%
+  dplyr::mutate(intervention_characteristic_2_bin = ifelse(intervention_characteristic_2_bin == 2, 1, 0)) %>%
+  # Do the same for control 
+  dplyr::mutate(control_characteristic_1_bin = ifelse(control_characteristic_1 > median(intervention_characteristic_1), 1, 0)) %>%
+  dplyr::mutate(control_characteristic_2_bin = ifelse(control_characteristic_2 > median(intervention_characteristic_2), 1, 0))
+  
 #***********************************************************************
 # Inspect data ---------------------------------------------------------
 #***********************************************************************
@@ -86,7 +97,25 @@ dat_s_22 <- dat_s_22 %>%
 # Replace "intervention" with "median_intervention" in column names
 # to match the variables that are fed from the extraction sheet
 
-colnames(dat_s_22) <- gsub("intervention_characteristic", "mean_characteristic", colnames(dat_s_22))
+# Do proportions first
+dat_s_22 <- dat_s_22 %>%
+  dplyr::mutate(proportion_characteristic_1_yes = ifelse(intervention_characteristic_1_bin == 1, 1, 0)) %>%
+  dplyr::mutate(proportion_characteristic_2_yes = ifelse(intervention_characteristic_2_bin == 1, 1, 0))
+
+# means and medians
+dat_s_22 <- dat_s_22 %>%
+  dplyr::mutate(mean_characteristic_1 = intervention_characteristic_1,
+                mean_characteristic_2 = intervention_characteristic_2,
+                mean_characteristic_3 = intervention_characteristic_3,
+                mean_characteristic_4 = intervention_characteristic_4,
+                mean_characteristic_5 = intervention_characteristic_5,
+                mean_characteristic_6 = intervention_characteristic_6,
+                median_characteristic_1 = intervention_characteristic_1,
+                median_characteristic_2 = intervention_characteristic_2,
+                median_characteristic_3 = intervention_characteristic_3,
+                median_characteristic_4 = intervention_characteristic_4,
+                median_characteristic_5 = intervention_characteristic_5,
+                median_characteristic_6 = intervention_characteristic_6)
 
 #***********************************************************************
 # Save data ------------------------------------------------------------
