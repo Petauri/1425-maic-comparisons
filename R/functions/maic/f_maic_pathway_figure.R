@@ -172,9 +172,9 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
       fmt_number(rows = (results_df$Characteristic == "ESS"),
                  decimals = 0) %>%
       fmt_number(rows = grepl("Mean", results_df$Characteristic),
-                 decimals = 4) %>%
+                 decimals = 3) %>%
       fmt_number(rows = grepl("Median", results_df$Characteristic),
-                 decimals = 4) %>%
+                 decimals = 3) %>%
       fmt_number(rows = grepl("Percentage", results_df$Characteristic),
                  decimals = 0) %>%
       # Center align column names 
