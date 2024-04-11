@@ -356,7 +356,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   saveWorkbook(wb, file = file.path(results_folder,
                                     version, 
                                     maic_package,
-                                    paste0("match-", match_no, ".xlsx")),
+                                    paste0(maic_package, "_match-", match_no, ".xlsx")),
                overwrite = TRUE)
   
   #***********************************************************************
