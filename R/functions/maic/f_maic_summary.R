@@ -92,6 +92,14 @@ f_maic_summary <- function(ild_df, match_characteristics, weighted, weights) {
     
   }
   
+  # Rounding 
+  
+  df_final <- df_final %>% 
+    mutate_at(vars(contains("median")), as.numeric) %>%
+    mutate_at(vars(contains("median")), ~ ifelse(is.numeric(.), round2(., 4), .)) %>%
+    mutate_at(vars(contains("mean")), as.numeric) %>%
+    mutate_at(vars(contains("mean")), ~ ifelse(is.numeric(.), round2(., 4), .))
+  
   return(df_final)
   
   suppressWarnings(rm(df_final, df_filtered, df_long, summary_df, summary_wide_t, ild_long, ild_tibble, ild_subset))

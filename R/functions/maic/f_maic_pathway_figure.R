@@ -40,6 +40,9 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
   # Use reduce to merge the data frames in characteristics_data_list
   results_df <- reduce(characteristics_data_list, merge)
   
+  # Replace all instances of 'maic_package' in column names
+  colnames(results_df) <- gsub(paste0(maic_package, "_"), "", colnames(results_df))
+  
   # Reorder data frame based on characteristic column 
   
   # Firstly order on number of TRUE values, then separate out 
@@ -81,6 +84,7 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
   # Apply styling based on conditions
   for (i in seq_along(spanner_cols)) {
     col <- spanner_cols[i]
+    
     gt_table <- gt_table %>%
       tab_spanner(
         label = paste0("spanner_", i),
@@ -167,6 +171,12 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
       # and same for ESS 
       fmt_number(rows = (results_df$Characteristic == "ESS"),
                  decimals = 0) %>%
+      fmt_number(rows = grepl("Mean", results_df$Characteristic),
+                 decimals = 3) %>%
+      fmt_number(rows = grepl("Median", results_df$Characteristic),
+                 decimals = 3) %>%
+      fmt_number(rows = grepl("Percentage", results_df$Characteristic),
+                 decimals = 0) %>%
       # Center align column names 
       # tab_style(
       #   style = cell_text(align = "center"),
@@ -210,7 +220,7 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
   # PNG
   gtExtras::gtsave_extra(gt_table, 
                          file = file.path(paste0(directory_path),
-                                          paste0("maic_markup_", maic_package, ".png")),
+                                          paste0(maic_package, "_markup.png")),
                          expand = c(0, 1000, 0, 1000))
   # DOCX
   # gtsave(gt_table,

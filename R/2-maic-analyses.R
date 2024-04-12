@@ -43,7 +43,10 @@ pacman::p_load(
   purrr,
   ggsurvfit,
   readxl,
-  gt
+  gt,
+  gtExtras,
+  webshot2,
+  maicChecks
 )
 
 #***********************************************************************
@@ -65,14 +68,13 @@ s_daysinmonth <- 365.25/12 # days to month and vice versa
 # SOURCE FUNCTIONS
 
 source("R/functions/misc/rounding/f_func_misc_rounding.R")
-source("R/functions/maic/f_maic_package.R")
 source("R/functions/maic/f_maic_summary.R")
 source("R/functions/maic/f_maic_pathway_figure.R")
 source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-3"
+version <- "v0-5"
 dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
@@ -164,18 +166,22 @@ match_maic_4 <- c("mean_characteristic_1",
                   "mean_characteristic_3",
                   "mean_characteristic_4")
 
-# match_maic_5 <- c("mean_characteristic_1",
-#                   "mean_characteristic_2",
-#                   "mean_characteristic_3",
-#                   "mean_characteristic_4",
-#                   "mean_characteristic_5")
-# 
-# match_maic_6 <- c("mean_characteristic_1",
-#                   "mean_characteristic_2",
-#                   "mean_characteristic_3",
-#                   "mean_characteristic_4",
-#                   "mean_characteristic_5",
-#                   "mean_characteristic_6")
+match_maic_5 <- c("mean_characteristic_1",
+                  "mean_characteristic_2",
+                  "mean_characteristic_3",
+                  "mean_characteristic_4",
+                  "proportion_characteristic_1_yes")
+
+match_maic_6 <- c("mean_characteristic_1",
+                  "mean_characteristic_2",
+                  "mean_characteristic_3",
+                  "mean_characteristic_4",
+                  "proportion_characteristic_1_yes",
+                  "median_characteristic_1")
+
+match_maic_7 <- c("proportion_characteristic_1_yes")
+
+match_maic_8 <- c("proportion_characteristic_2_yes")
 
 # Get all variables in the environment that start with "match_"
 match_vectors <- ls(pattern = "^match_maic")
@@ -230,21 +236,23 @@ for (maic_package in maic_packages) {
   }
   
   # Compile the results into a dataframe
+  
   result_df <- do.call(rbind, lapply(results_list, function(x) data.frame(x)))
   outcome_df <- do.call(rbind, lapply(outcome_list, function(x) data.frame(x)))
-  # Save the dataframe to an Excel file
+ 
+   # Save the dataframe to an Excel file
   
   write.xlsx(result_df,
              file.path(results_folder,
                        version, 
                        maic_package,
-                       "maic_summary_run.xlsx"))
+                       paste0(maic_package, "_summary_run.xlsx")))
   
   write.xlsx(outcome_df,
              file.path(results_folder,
                        version, 
                        maic_package,
-                       "maic_outcome_summary.xlsx"))
+                       paste0(maic_package, "_outcome_summary.xlsx")))
   
   #***********************************************************************
   # GENERATE SUMMARY MAIC FIGURE -------------------------------------------
