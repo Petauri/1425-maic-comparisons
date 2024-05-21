@@ -4,7 +4,7 @@
 
 # ild_dat <- ild_dat
 # ald_dat <- ald_data_t
-# matching_vars <- match_maic_4
+# matching_vars <- match_maic_6
 # comparator_drug <- "Treatment X"
 # match_no <- 4
 
@@ -115,11 +115,26 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
   } else if (maic_package == "MAIC_roche") {
     
-    # Make centered variables like in the vignette  
+    # Make centered variables
     
     for (var in matching_vars) {
-      ild_dat <- ild_dat %>%
-        mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
+      
+      # Handle Medians 
+      if (any(grepl("median", var))) {
+        
+        ild_dat <- ild_dat %>% 
+          mutate(!!sym(paste0(var, "_temp")) := ifelse(!!sym(var) > ald_dat[[var]], 1, 0))
+        
+        ild_dat <- ild_dat %>%
+          mutate(!!sym(paste0(var, "_centered")) := !!sym(paste0(var, "_temp")) - 0.5)
+        
+      } else {
+        
+        ild_dat <- ild_dat %>%
+          mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
+        
+      }
+      
     }
     
     matching_vars_roche <- paste0(matching_vars, "_centered")
@@ -144,8 +159,23 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     # Make centered variables
     
     for (var in matching_vars) {
-      ild_dat <- ild_dat %>%
-        mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
+      
+      # Handle Medians 
+      if (any(grepl("median", var))) {
+        
+        ild_dat <- ild_dat %>% 
+          mutate(!!sym(paste0(var, "_temp")) := ifelse(!!sym(var) > ald_dat[[var]], 1, 0))
+        
+        ild_dat <- ild_dat %>%
+          mutate(!!sym(paste0(var, "_centered")) := !!sym(paste0(var, "_temp")) - 0.5)
+
+      } else {
+        
+        ild_dat <- ild_dat %>%
+          mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
+        
+      }
+
     }
     
     matching_vars_centered <- paste0(matching_vars, "_centered")

@@ -74,7 +74,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-5"
+version <- "v0-6"
 dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
@@ -182,6 +182,8 @@ match_maic_6 <- c("mean_characteristic_1",
 match_maic_7 <- c("proportion_characteristic_1_yes")
 
 match_maic_8 <- c("proportion_characteristic_2_yes")
+
+match_maic_9 <- c("median_characteristic_1")
 
 # Get all variables in the environment that start with "match_"
 match_vectors <- ls(pattern = "^match_maic")
