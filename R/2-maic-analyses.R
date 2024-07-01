@@ -74,7 +74,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-6"
+version <- "v0-6-test"
 dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
