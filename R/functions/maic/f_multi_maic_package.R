@@ -184,7 +184,8 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
     maicplus_weights <- maicplus::estimate_weights(
       data = ild_dat,
-      centered_colnames = matching_vars_centered
+      centered_colnames = matching_vars_centered,
+      boot_strata = NULL
     )
     
     weights_from_maic <- maicplus_weights$data$weights
@@ -333,41 +334,49 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   outcome_names <- c("Untreated median survival (months)", 
                      "Intervention median survival (months)")
   
-  unweighted_outcomes <- c(paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
-                                  round(results$ci_lower[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ", ",
-                                  round(results$ci_upper[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ")"
-  ),
+  # Create separate columns for unweighted outcomes
+  unweighted_estimates <- c(round(results$mean[results$variable == "intervention_outcome_pop_a_untreated"], digits = 3),
+                            round(results$mean[results$variable == "intervention_outcome_pop_a_with_intervention"], digits = 3))
+  unweighted_lower <- c(round(results$ci_lower[results$variable == "intervention_outcome_pop_a_untreated"], digits = 3),
+                        round(results$ci_lower[results$variable == "intervention_outcome_pop_a_with_intervention"], digits = 3))
+  unweighted_upper <- c(round(results$ci_upper[results$variable == "intervention_outcome_pop_a_untreated"], digits = 3),
+                        round(results$ci_upper[results$variable == "intervention_outcome_pop_a_with_intervention"], digits = 3))
   
-  paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
-         round(results$ci_lower[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
-         round(results$ci_upper[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
-  )
+  # Create separate columns for weighted outcomes
+  weighted_estimates <- c(round(results$mean[results$variable == "w_intervention_outcome_pop_a_untreated"], digits = 3),
+                          round(results$mean[results$variable == "w_intervention_outcome_pop_a_with_intervention"], digits = 3))
+  weighted_lower <- c(round(results$ci_lower[results$variable == "w_intervention_outcome_pop_a_untreated"], digits = 3),
+                      round(results$ci_lower[results$variable == "w_intervention_outcome_pop_a_with_intervention"], digits = 3))
+  weighted_upper <- c(round(results$ci_upper[results$variable == "w_intervention_outcome_pop_a_untreated"], digits = 3),
+                      round(results$ci_upper[results$variable == "w_intervention_outcome_pop_a_with_intervention"], digits = 3))
+  
+  # Create separate columns for comparator outcomes
+  ald_estimates <- c(round(ald_outcomes_t$mean_outcome_untreated, digits = 3),
+                     round(ald_outcomes_t$mean_outcome_intervention, digits = 3))
+  ald_lower <- c(round(ald_outcomes_t$untreated_ci_lower, digits = 3),
+                 round(ald_outcomes_t$intervention_ci_lower, digits = 3))
+  ald_upper <- c(round(ald_outcomes_t$untreated_ci_upper, digits = 3),
+                 round(ald_outcomes_t$intervention_ci_upper, digits = 3))
+  
+  # Combine into a data frame
+  outcome_summary <- data.frame(
+    outcome_names,
+    unweighted_estimates, unweighted_lower, unweighted_upper,
+    weighted_estimates, weighted_lower, weighted_upper,
+    ald_estimates, ald_lower, ald_upper
   )
   
+  # Rename columns for clarity
+  colnames(outcome_summary) <- c("Outcome",
+                                 "Unweighted Estimate (Population A)", "Unweighted Lower 95% CI", "Unweighted Upper 95% CI",
+                                 "Weighted Estimate (Population A)", "Weighted Lower 95% CI", "Weighted Upper 95% CI",
+                                 "Comparator Estimate (Population B)", "Comparator Lower 95% CI", "Comparator Upper 95% CI")
   
-  weighted_outcomes <- c(paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
-                                round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), ", ",
-                                round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), ")"
-  ),
-  paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
-         round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
-         round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
-  )
-  )
-  
-  ald_outcomes <- c(paste0(round(ald_outcomes_t$mean_outcome_untreated, digits = 3), " (95% CI: ",
-                           round(ald_outcomes_t$untreated_ci_lower, digits = 3), ", ",
-                           round(ald_outcomes_t$untreated_ci_upper, digits = 3), ")"
-  ),
-  paste0(round(ald_outcomes_t$mean_outcome_intervention, digits = 3), " (95% CI: ",
-         round(ald_outcomes_t$intervention_ci_lower, digits = 3), ", ",
-         round(ald_outcomes_t$intervention_ci_upper, digits = 3), ")"
-  )
-  )
-  
-  outcome_summary <- data.frame(outcome_names, unweighted_outcomes, weighted_outcomes, ald_outcomes)
-  colnames(outcome_summary) <- c("Outcome", "Unweighted (Population A)", "Weighted (Population A)", "Comparator (Population B)")
+  # Add match number to the data frame
   outcome_summary$Match <- paste0("Match ", match_no)
+  
+  # Clean column names 
+  outcome_summary <- janitor::clean_names(outcome_summary)
   
   #***********************************************************************
   # SAVE RESULTS -----------------------------------------------
