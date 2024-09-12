@@ -4,9 +4,10 @@
 
 # ild_dat <- ild_dat
 # ald_dat <- ald_data_t
-# matching_vars <- match_maic_6
+# matching_vars <- match_maic_7
 # comparator_drug <- "Treatment X"
-# match_no <- 4
+# match_no <- 7
+# maic_package <- "maic"
 
 f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, characteristic_vars, comparator_drug, match_no) {
   
@@ -39,7 +40,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   #***********************************************************************
   # maic package ---------------------------------------------------------
   #***********************************************************************
-
+  
   if(maic_package == "maic") {
     
     # Filter ILD data ---------------------------------------------------------
@@ -138,7 +139,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     }
     
     matching_vars_roche <- paste0(matching_vars, "_centered")
-      
+    
     # estimate weights 
     roche_weights <- MAIC::estimate_weights(
       intervention_data = ild_dat,
@@ -168,14 +169,14 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
         
         ild_dat <- ild_dat %>%
           mutate(!!sym(paste0(var, "_centered")) := !!sym(paste0(var, "_temp")) - 0.5)
-
+        
       } else {
         
         ild_dat <- ild_dat %>%
           mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
         
       }
-
+      
     }
     
     matching_vars_centered <- paste0(matching_vars, "_centered")
@@ -201,11 +202,29 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     # to specify matching variables by the looks of it... the function just takes
     # all the variables in the df 
     
+    # Make centered variables
+    
+    for (var in matching_vars) {
+      
+      # Handle Medians 
+      if (any(grepl("median", var))) {
+        
+        ild_dat <- ild_dat %>% 
+          mutate(!!sym(paste0(var)) := ifelse(!!sym(var) > ald_dat[[var]], 1, 0))
+        
+      }
+      
+    }
+    
+    matching_vars_mc <- paste0(matching_vars, "_centered")
+    
     ild_maic_check <- ild_dat %>%
       dplyr::select(all_of(matching_vars))
     
     ald_maic_check <- ald_dat %>%
-      dplyr::select(all_of(matching_vars))
+      dplyr::select(all_of(matching_vars)) %>%
+      # Make medians to 0.5 
+      mutate(across(contains("median"), ~ 0.5))
     
     # Weights
     
@@ -285,6 +304,10 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   
   # Add the results to the summary table
   # summary_table <- rbind(summary_table, data.frame(study_name = study, Complete = complete))
+  
+  # Extract ESS
+  
+  ess_value <- round(subset(overall_summary_w, Characteristic == "ESS")$`ILD weighted`, digits = 0)
   
   #***********************************************************************
   # ANALYSIS -----------------------------------------------
@@ -377,6 +400,9 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   
   # Clean column names 
   outcome_summary <- janitor::clean_names(outcome_summary)
+  
+  # Add ESS 
+  outcome_summary$ess_value <- ess_value
   
   #***********************************************************************
   # SAVE RESULTS -----------------------------------------------
