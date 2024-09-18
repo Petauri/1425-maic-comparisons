@@ -71,7 +71,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-7b"
+version <- "v0-8"
 
 #***********************************************************************
 # Read data ---------------------------------------------------
@@ -196,40 +196,45 @@ create_forest_plot <- function(data) {
     geom_point(position = pd, size = 3) +
     geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2, position = pd) +
     scale_color_manual(values = c("grey", "black", "slateblue4", "tomato1")) +
-    labs(x = "Estimate (Months)", y = "Match") +
-    theme_minimal() +
+    labs(x = "Estimate", y = "Match", color = "R Package") +
     theme(legend.title = element_blank(), 
           plot.title = element_blank(), # Remove individual titles
-          strip.text = element_text(size = 12)) + # Adjust facet labels size
+          strip.text = element_text(size = 12),
+          element_text(face = "bold")) + # Adjust facet labels size
     geom_text(
       aes(
-        x = 18.5,
+        x = 17.5,
         group = package,
         label = sprintf(
           "%0.2f (%0.2f, %0.2f)",
           estimate, lower, upper
         )
       ),
-      hjust = 0, vjust = 0.5, size = 3.5, color = "black",
+      hjust = 0, vjust = 0.5, size = 5, color = "black",
       position = position_dodge(width = 0.8)
     ) +
     geom_text(
       aes(
-        x = 20.3,
+        x = 19,
         group = package,
         label = paste0("ESS = ", round2(ess_value, digits = 0))
       ),
-      hjust = 0, vjust = 0.5, size = 3.5, color = "black",
+      hjust = 0, vjust = 0.5, size = 5, color = "black",
       position = position_dodge(width = 0.8)
     ) +
-    guides(color = guide_legend(reverse=TRUE), shape = guide_legend(reverse=TRUE))
+    guides(color = guide_legend(reverse=TRUE), shape = guide_legend(reverse=TRUE)) +
+    xlim(12.5, 20) +
+    theme_minimal(base_size = 20)
 }
-
-# Generate the multipanel plot
-combined_plot <- create_forest_plot(combined_data) +
-  facet_wrap(~ outcome_label, scales = "free_y", ncol = 2)
 
 fplot <- create_forest_plot(all_combined_data)
 
-# Display the combined plot
-print(combined_plot)
+# save plot
+dir.create(file.path(results_folder, version, "comparison_figures"),
+           showWarnings = FALSE)
+
+png(file.path(results_folder, version, "comparison_figures",
+              paste0("forest_weighted_outcomes_compare.png")),
+    units = "mm", width=400, height=200, res = 800)
+print(fplot)
+dev.off() 

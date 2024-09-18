@@ -4,9 +4,9 @@
 
 # ild_dat <- ild_dat
 # ald_dat <- ald_data_t
-# matching_vars <- match_maic_7
+# matching_vars <- match_maic_4
 # comparator_drug <- "Treatment X"
-# match_no <- 7
+# match_no <- 4
 # maic_package <- "maic"
 
 f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, characteristic_vars, comparator_drug, match_no) {
@@ -314,27 +314,47 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   #***********************************************************************
   
   # Create new dataset to include weights and weighted outcomes
+  # Create new dataset to include weights and weighted outcomes
   ild_dat <- ild_dat %>%
-    # Add each patients weight to the dataset
+    # Add each patient's weight to the dataset
     mutate(weights = weights_from_maic) %>%
-    mutate(w_intervention_outcome_pop_a_untreated = weights*intervention_outcome_pop_a_untreated,
-           w_intervention_outcome_pop_a_with_intervention = weights*intervention_outcome_pop_a_with_intervention) 
+    mutate(w_intervention_outcome_pop_a_untreated = intervention_outcome_pop_a_untreated,
+           w_intervention_outcome_pop_a_with_intervention = intervention_outcome_pop_a_with_intervention) 
   
-  # Define the variables
+  # Define the variables for unweighted and weighted outcomes
   variables <- c("intervention_outcome_pop_a_untreated", 
-                 "intervention_outcome_pop_a_with_intervention", 
-                 "w_intervention_outcome_pop_a_untreated", 
-                 "w_intervention_outcome_pop_a_with_intervention")
+                 "intervention_outcome_pop_a_with_intervention")
+  weighted_variables <- c("w_intervention_outcome_pop_a_untreated", 
+                          "w_intervention_outcome_pop_a_with_intervention")
   
-  # Function to calculate mean and confidence interval
-  calculate_ci <- function(var) {
+  # Function to calculate mean and confidence interval (unweighted)
+  calculate_ci_unweighted <- function(var) {
     mean_value <- mean(ild_dat[[var]], na.rm = TRUE)
     ci <- t.test(ild_dat[[var]], na.rm = TRUE)$conf.int
-    return(data.frame(variable = var, mean = mean_value, ci_lower = ci[1], ci_upper = ci[2]))
+    return(data.frame(variable = var, mean = mean_value, ci_lower = ci[1], ci_upper = ci[2], method = "unweighted"))
   }
   
-  # Apply the function to each variable and combine results
-  results <- lapply(variables, calculate_ci) %>% bind_rows()
+  # Function to calculate weighted mean and confidence interval
+  calculate_ci_weighted <- function(var) {
+    # Create a survey design object using the weight column
+    weighted_design <- svydesign(~1, data = ild_dat, weights = ~weights)
+    
+    # Calculate weighted mean and confidence interval
+    mean_value <- svymean(~ild_dat[[var]], design = weighted_design, na.rm = TRUE)
+    ci <- confint(mean_value)
+    
+    return(data.frame(variable = var, mean = coef(mean_value)[1], ci_lower = ci[1], ci_upper = ci[2], method = "weighted"))
+  }
+  
+  # Apply the function to the unweighted variables
+  unweighted_results <- lapply(variables, calculate_ci_unweighted) %>% bind_rows()
+  
+  # Apply the function to the same variables but using weights for weighted results
+  weighted_results <- lapply(weighted_variables, calculate_ci_weighted) %>% bind_rows()
+  
+  # Combine the unweighted and weighted results
+  results <- bind_rows(unweighted_results, weighted_results)
+  rownames(results) <- NULL
   
   # Get outcomes from ALD data to compare to 
   
