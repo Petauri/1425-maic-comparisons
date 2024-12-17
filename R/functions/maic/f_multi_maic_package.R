@@ -232,6 +232,43 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
     weights_from_maic <- maic_maic_check$maic.wt
     
+  } else if (maic_package == "maicChecks_alternateWT") {
+    
+    # Need to filter the datasets for this package so that the only variables in
+    # both the IPD and ALD are those that we are matching on as there is no option
+    # to specify matching variables by the looks of it... the function just takes
+    # all the variables in the df 
+    
+    # Make centered variables
+    
+    for (var in matching_vars) {
+      
+      # Handle Medians 
+      if (any(grepl("median", var))) {
+        
+        ild_dat <- ild_dat %>% 
+          mutate(!!sym(paste0(var)) := ifelse(!!sym(var) > ald_dat[[var]], 1, 0))
+        
+      }
+      
+    }
+    
+    matching_vars_mc <- paste0(matching_vars, "_centered")
+    
+    ild_maic_check <- ild_dat %>%
+      dplyr::select(all_of(matching_vars))
+    
+    ald_maic_check <- ald_dat %>%
+      dplyr::select(all_of(matching_vars)) %>%
+      # Make medians to 0.5 
+      mutate(across(contains("median"), ~ 0.5))
+    
+    # Weights
+    
+    maic_maic_check <- maicChecks::maxessWt(ild_maic_check, ald_maic_check)
+    
+    weights_from_maic <- maic_maic_check$maxess.wt
+    
   }
   
   #***********************************************************************

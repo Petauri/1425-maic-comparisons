@@ -71,7 +71,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-8"
+version <- "v0-9"
 
 #***********************************************************************
 # Read data ---------------------------------------------------
@@ -83,7 +83,8 @@ maic_packages <- c(
   "maic", 
   "MAIC_roche", 
   "Maicplus",
-  "maicChecks"
+  "maicChecks",
+  "maicChecks_alternateWT"
 )
 
 # maic 
@@ -152,7 +153,8 @@ all_combined_data <- bind_rows(combined_data_list)
 # Formatting
 all_combined_data <- all_combined_data %>% 
 mutate(across(everything(), ~ str_replace_all(., "MAIC_roche", "MAIC (Roche)"))) %>%
-  mutate(across(everything(), ~ str_replace_all(., "Maicplus", "maicplus")))
+  mutate(across(everything(), ~ str_replace_all(., "Maicplus", "maicplus"))) %>%
+  mutate(across(everything(), ~ str_replace_all(., "maicChecks_alternateWT", "maicChecks (alternate weights)")))
   
 # Define a function to create the forest plot without individual titles
 create_forest_plot <- function(data) {
@@ -195,7 +197,7 @@ create_forest_plot <- function(data) {
   ggplot(data_long, aes(x = estimate, y = match, color = package)) +
     geom_point(position = pd, size = 3) +
     geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2, position = pd) +
-    scale_color_manual(values = c("grey", "black", "slateblue4", "tomato1")) +
+    scale_color_manual(values = c("grey", "black", "slateblue4", "tomato1", "tomato4")) +
     labs(x = "Estimate", y = "Match", color = "R Package") +
     theme(legend.title = element_blank(), 
           plot.title = element_blank(), # Remove individual titles
@@ -203,23 +205,23 @@ create_forest_plot <- function(data) {
           element_text(face = "bold")) + # Adjust facet labels size
     geom_text(
       aes(
-        x = 17.5,
+        x = 18,
         group = package,
         label = sprintf(
           "%0.2f (%0.2f, %0.2f)",
           estimate, lower, upper
         )
       ),
-      hjust = 0, vjust = 0.5, size = 5, color = "black",
+      hjust = 0, vjust = 0.5, size = 4, color = "black",
       position = position_dodge(width = 0.8)
     ) +
     geom_text(
       aes(
-        x = 19,
+        x = 19.5,
         group = package,
         label = paste0("ESS = ", round2(ess_value, digits = 0))
       ),
-      hjust = 0, vjust = 0.5, size = 5, color = "black",
+      hjust = 0, vjust = 0.5, size = 4, color = "black",
       position = position_dodge(width = 0.8)
     ) +
     guides(color = guide_legend(reverse=TRUE), shape = guide_legend(reverse=TRUE)) +
@@ -235,6 +237,6 @@ dir.create(file.path(results_folder, version, "comparison_figures"),
 
 png(file.path(results_folder, version, "comparison_figures",
               paste0("forest_weighted_outcomes_compare.png")),
-    units = "mm", width=400, height=200, res = 800)
+    units = "mm", width=400, height=230, res = 800)
 print(fplot)
 dev.off() 
