@@ -4,9 +4,10 @@
 
 # ild_dat <- ild_dat
 # ald_dat <- ald_data_t
-# matching_vars <- match_maic_6
+# matching_vars <- match_maic_4
 # comparator_drug <- "Treatment X"
 # match_no <- 4
+# maic_package <- "maic"
 
 f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, characteristic_vars, comparator_drug, match_no) {
   
@@ -39,7 +40,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   #***********************************************************************
   # maic package ---------------------------------------------------------
   #***********************************************************************
-
+  
   if(maic_package == "maic") {
     
     # Filter ILD data ---------------------------------------------------------
@@ -138,7 +139,7 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     }
     
     matching_vars_roche <- paste0(matching_vars, "_centered")
-      
+    
     # estimate weights 
     roche_weights <- MAIC::estimate_weights(
       intervention_data = ild_dat,
@@ -168,14 +169,14 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
         
         ild_dat <- ild_dat %>%
           mutate(!!sym(paste0(var, "_centered")) := !!sym(paste0(var, "_temp")) - 0.5)
-
+        
       } else {
         
         ild_dat <- ild_dat %>%
           mutate(!!paste0(var, "_centered") := !!sym(var) - ald_dat[[var]])
         
       }
-
+      
     }
     
     matching_vars_centered <- paste0(matching_vars, "_centered")
@@ -184,7 +185,8 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     
     maicplus_weights <- maicplus::estimate_weights(
       data = ild_dat,
-      centered_colnames = matching_vars_centered
+      centered_colnames = matching_vars_centered,
+      boot_strata = NULL
     )
     
     weights_from_maic <- maicplus_weights$data$weights
@@ -200,17 +202,72 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
     # to specify matching variables by the looks of it... the function just takes
     # all the variables in the df 
     
+    # Make centered variables
+    
+    for (var in matching_vars) {
+      
+      # Handle Medians 
+      if (any(grepl("median", var))) {
+        
+        ild_dat <- ild_dat %>% 
+          mutate(!!sym(paste0(var)) := ifelse(!!sym(var) > ald_dat[[var]], 1, 0))
+        
+      }
+      
+    }
+    
+    matching_vars_mc <- paste0(matching_vars, "_centered")
+    
     ild_maic_check <- ild_dat %>%
       dplyr::select(all_of(matching_vars))
     
     ald_maic_check <- ald_dat %>%
-      dplyr::select(all_of(matching_vars))
+      dplyr::select(all_of(matching_vars)) %>%
+      # Make medians to 0.5 
+      mutate(across(contains("median"), ~ 0.5))
     
     # Weights
     
     maic_maic_check <- maicChecks::maicWt(ild_maic_check, ald_maic_check)
     
     weights_from_maic <- maic_maic_check$maic.wt
+    
+  } else if (maic_package == "maicChecks_alternateWT") {
+    
+    # Need to filter the datasets for this package so that the only variables in
+    # both the IPD and ALD are those that we are matching on as there is no option
+    # to specify matching variables by the looks of it... the function just takes
+    # all the variables in the df 
+    
+    # Make centered variables
+    
+    for (var in matching_vars) {
+      
+      # Handle Medians 
+      if (any(grepl("median", var))) {
+        
+        ild_dat <- ild_dat %>% 
+          mutate(!!sym(paste0(var)) := ifelse(!!sym(var) > ald_dat[[var]], 1, 0))
+        
+      }
+      
+    }
+    
+    matching_vars_mc <- paste0(matching_vars, "_centered")
+    
+    ild_maic_check <- ild_dat %>%
+      dplyr::select(all_of(matching_vars))
+    
+    ald_maic_check <- ald_dat %>%
+      dplyr::select(all_of(matching_vars)) %>%
+      # Make medians to 0.5 
+      mutate(across(contains("median"), ~ 0.5))
+    
+    # Weights
+    
+    maic_maic_check <- maicChecks::maxessWt(ild_maic_check, ald_maic_check)
+    
+    weights_from_maic <- maic_maic_check$maxess.wt
     
   }
   
@@ -285,32 +342,56 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   # Add the results to the summary table
   # summary_table <- rbind(summary_table, data.frame(study_name = study, Complete = complete))
   
+  # Extract ESS
+  
+  ess_value <- round(subset(overall_summary_w, Characteristic == "ESS")$`ILD weighted`, digits = 0)
+  
   #***********************************************************************
   # ANALYSIS -----------------------------------------------
   #***********************************************************************
   
   # Create new dataset to include weights and weighted outcomes
+  # Create new dataset to include weights and weighted outcomes
   ild_dat <- ild_dat %>%
-    # Add each patients weight to the dataset
+    # Add each patient's weight to the dataset
     mutate(weights = weights_from_maic) %>%
-    mutate(w_intervention_outcome_pop_a_untreated = weights*intervention_outcome_pop_a_untreated,
-           w_intervention_outcome_pop_a_with_intervention = weights*intervention_outcome_pop_a_with_intervention) 
+    mutate(w_intervention_outcome_pop_a_untreated = intervention_outcome_pop_a_untreated,
+           w_intervention_outcome_pop_a_with_intervention = intervention_outcome_pop_a_with_intervention) 
   
-  # Define the variables
+  # Define the variables for unweighted and weighted outcomes
   variables <- c("intervention_outcome_pop_a_untreated", 
-                 "intervention_outcome_pop_a_with_intervention", 
-                 "w_intervention_outcome_pop_a_untreated", 
-                 "w_intervention_outcome_pop_a_with_intervention")
+                 "intervention_outcome_pop_a_with_intervention")
+  weighted_variables <- c("w_intervention_outcome_pop_a_untreated", 
+                          "w_intervention_outcome_pop_a_with_intervention")
   
-  # Function to calculate mean and confidence interval
-  calculate_ci <- function(var) {
+  # Function to calculate mean and confidence interval (unweighted)
+  calculate_ci_unweighted <- function(var) {
     mean_value <- mean(ild_dat[[var]], na.rm = TRUE)
     ci <- t.test(ild_dat[[var]], na.rm = TRUE)$conf.int
-    return(data.frame(variable = var, mean = mean_value, ci_lower = ci[1], ci_upper = ci[2]))
+    return(data.frame(variable = var, mean = mean_value, ci_lower = ci[1], ci_upper = ci[2], method = "unweighted"))
   }
   
-  # Apply the function to each variable and combine results
-  results <- lapply(variables, calculate_ci) %>% bind_rows()
+  # Function to calculate weighted mean and confidence interval
+  calculate_ci_weighted <- function(var) {
+    # Create a survey design object using the weight column
+    weighted_design <- svydesign(~1, data = ild_dat, weights = ~weights)
+    
+    # Calculate weighted mean and confidence interval
+    mean_value <- svymean(~ild_dat[[var]], design = weighted_design, na.rm = TRUE)
+    ci <- confint(mean_value)
+    
+    return(data.frame(variable = var, mean = coef(mean_value)[1], ci_lower = ci[1], ci_upper = ci[2], method = "weighted"))
+  }
+  
+  # Apply the function to the unweighted variables
+  unweighted_results <- lapply(variables, calculate_ci_unweighted) %>% bind_rows()
+  
+  # Apply the function to the same variables but using weights for weighted results
+  weighted_results <- lapply(weighted_variables, calculate_ci_weighted) %>% bind_rows()
+  
+  # Combine the unweighted and weighted results
+  results <- bind_rows(unweighted_results, weighted_results)
+  rownames(results) <- NULL
   
   # Get outcomes from ALD data to compare to 
   
@@ -333,41 +414,52 @@ f_multi_maic_package <- function(maic_package, ild_dat, ald_dat, matching_vars, 
   outcome_names <- c("Untreated median survival (months)", 
                      "Intervention median survival (months)")
   
-  unweighted_outcomes <- c(paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
-                                  round(results$ci_lower[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ", ",
-                                  round(results$ci_upper[results$variable=="intervention_outcome_pop_a_untreated"], digits = 3), ")"
-  ),
+  # Create separate columns for unweighted outcomes
+  unweighted_estimates <- c(round(results$mean[results$variable == "intervention_outcome_pop_a_untreated"], digits = 3),
+                            round(results$mean[results$variable == "intervention_outcome_pop_a_with_intervention"], digits = 3))
+  unweighted_lower <- c(round(results$ci_lower[results$variable == "intervention_outcome_pop_a_untreated"], digits = 3),
+                        round(results$ci_lower[results$variable == "intervention_outcome_pop_a_with_intervention"], digits = 3))
+  unweighted_upper <- c(round(results$ci_upper[results$variable == "intervention_outcome_pop_a_untreated"], digits = 3),
+                        round(results$ci_upper[results$variable == "intervention_outcome_pop_a_with_intervention"], digits = 3))
   
-  paste0(round(results$mean[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
-         round(results$ci_lower[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
-         round(results$ci_upper[results$variable=="intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
-  )
+  # Create separate columns for weighted outcomes
+  weighted_estimates <- c(round(results$mean[results$variable == "w_intervention_outcome_pop_a_untreated"], digits = 3),
+                          round(results$mean[results$variable == "w_intervention_outcome_pop_a_with_intervention"], digits = 3))
+  weighted_lower <- c(round(results$ci_lower[results$variable == "w_intervention_outcome_pop_a_untreated"], digits = 3),
+                      round(results$ci_lower[results$variable == "w_intervention_outcome_pop_a_with_intervention"], digits = 3))
+  weighted_upper <- c(round(results$ci_upper[results$variable == "w_intervention_outcome_pop_a_untreated"], digits = 3),
+                      round(results$ci_upper[results$variable == "w_intervention_outcome_pop_a_with_intervention"], digits = 3))
+  
+  # Create separate columns for comparator outcomes
+  ald_estimates <- c(round(ald_outcomes_t$mean_outcome_untreated, digits = 3),
+                     round(ald_outcomes_t$mean_outcome_intervention, digits = 3))
+  ald_lower <- c(round(ald_outcomes_t$untreated_ci_lower, digits = 3),
+                 round(ald_outcomes_t$intervention_ci_lower, digits = 3))
+  ald_upper <- c(round(ald_outcomes_t$untreated_ci_upper, digits = 3),
+                 round(ald_outcomes_t$intervention_ci_upper, digits = 3))
+  
+  # Combine into a data frame
+  outcome_summary <- data.frame(
+    outcome_names,
+    unweighted_estimates, unweighted_lower, unweighted_upper,
+    weighted_estimates, weighted_lower, weighted_upper,
+    ald_estimates, ald_lower, ald_upper
   )
   
+  # Rename columns for clarity
+  colnames(outcome_summary) <- c("Outcome",
+                                 "Unweighted Estimate (Population A)", "Unweighted Lower 95% CI", "Unweighted Upper 95% CI",
+                                 "Weighted Estimate (Population A)", "Weighted Lower 95% CI", "Weighted Upper 95% CI",
+                                 "Comparator Estimate (Population B)", "Comparator Lower 95% CI", "Comparator Upper 95% CI")
   
-  weighted_outcomes <- c(paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), " (95% CI: ",
-                                round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), ", ",
-                                round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_untreated"], digits = 3), ")"
-  ),
-  paste0(round(results$mean[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), " (95% CI: ",
-         round(results$ci_lower[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ", ",
-         round(results$ci_upper[results$variable=="w_intervention_outcome_pop_a_with_intervention"], digits = 3), ")"
-  )
-  )
-  
-  ald_outcomes <- c(paste0(round(ald_outcomes_t$mean_outcome_untreated, digits = 3), " (95% CI: ",
-                           round(ald_outcomes_t$untreated_ci_lower, digits = 3), ", ",
-                           round(ald_outcomes_t$untreated_ci_upper, digits = 3), ")"
-  ),
-  paste0(round(ald_outcomes_t$mean_outcome_intervention, digits = 3), " (95% CI: ",
-         round(ald_outcomes_t$intervention_ci_lower, digits = 3), ", ",
-         round(ald_outcomes_t$intervention_ci_upper, digits = 3), ")"
-  )
-  )
-  
-  outcome_summary <- data.frame(outcome_names, unweighted_outcomes, weighted_outcomes, ald_outcomes)
-  colnames(outcome_summary) <- c("Outcome", "Unweighted (Population A)", "Weighted (Population A)", "Comparator (Population B)")
+  # Add match number to the data frame
   outcome_summary$Match <- paste0("Match ", match_no)
+  
+  # Clean column names 
+  outcome_summary <- janitor::clean_names(outcome_summary)
+  
+  # Add ESS 
+  outcome_summary$ess_value <- ess_value
   
   #***********************************************************************
   # SAVE RESULTS -----------------------------------------------

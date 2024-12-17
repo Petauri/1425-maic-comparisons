@@ -46,7 +46,8 @@ pacman::p_load(
   gt,
   gtExtras,
   webshot2,
-  maicChecks
+  maicChecks,
+  survey
 )
 
 #***********************************************************************
@@ -74,7 +75,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-6-test"
+version <- "v0-9"
 dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
@@ -139,51 +140,43 @@ characteristic_vars <- c("mean_characteristic_1",
                          "mean_characteristic_2",
                          "mean_characteristic_3",
                          "mean_characteristic_4",
-                         "mean_characteristic_5",
-                         "mean_characteristic_6",
                          "median_characteristic_1",
-                         "median_characteristic_2",
-                         "median_characteristic_3",
-                         "median_characteristic_4",
-                         "median_characteristic_5",
-                         "median_characteristic_6",
-                         "proportion_characteristic_1_yes",
-                         "proportion_characteristic_2_yes")
+                         # "median_characteristic_2",
+                         "proportion_characteristic_1_yes")
+                         # "proportion_characteristic_2_yes")
 
 # Set match characteristics
 
 match_maic_1 <- c("mean_characteristic_1")
 
-match_maic_2 <- c("mean_characteristic_1", 
+match_maic_2 <- c("median_characteristic_1")
+
+match_maic_3 <- c("proportion_characteristic_1_yes")
+
+match_maic_4 <- c("mean_characteristic_1", 
                   "mean_characteristic_2")
-
-match_maic_3 <- c("mean_characteristic_1",
-                  "mean_characteristic_2",
-                  "mean_characteristic_3")
-
-match_maic_4 <- c("mean_characteristic_1",
-                  "mean_characteristic_2",
-                  "mean_characteristic_3",
-                  "mean_characteristic_4")
 
 match_maic_5 <- c("mean_characteristic_1",
                   "mean_characteristic_2",
-                  "mean_characteristic_3",
-                  "mean_characteristic_4",
-                  "proportion_characteristic_1_yes")
+                  "mean_characteristic_3")
 
 match_maic_6 <- c("mean_characteristic_1",
                   "mean_characteristic_2",
                   "mean_characteristic_3",
+                  "mean_characteristic_4")
+
+match_maic_7 <- c("mean_characteristic_1",
+                  "mean_characteristic_2",
+                  "mean_characteristic_3",
                   "mean_characteristic_4",
-                  "proportion_characteristic_1_yes",
                   "median_characteristic_1")
 
-match_maic_7 <- c("proportion_characteristic_1_yes")
-
-match_maic_8 <- c("proportion_characteristic_2_yes")
-
-match_maic_9 <- c("median_characteristic_1")
+match_maic_8 <- c("mean_characteristic_1",
+                  "mean_characteristic_2",
+                  "mean_characteristic_3",
+                  "mean_characteristic_4",
+                  "median_characteristic_1",
+                  "proportion_characteristic_1_yes")
 
 # Get all variables in the environment that start with "match_"
 match_vectors <- ls(pattern = "^match_maic")
@@ -201,7 +194,8 @@ maic_packages <- c(
   "maic", 
   "MAIC_roche", 
   "Maicplus",
-  "maicChecks"
+  "maicChecks",
+  "maicChecks_alternateWT"
 )
 
 for (maic_package in maic_packages) {
