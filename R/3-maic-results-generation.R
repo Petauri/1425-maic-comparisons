@@ -71,7 +71,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-9"
+version <- "v0-91"
 
 #***********************************************************************
 # Read data ---------------------------------------------------
@@ -152,7 +152,7 @@ all_combined_data <- bind_rows(combined_data_list)
 
 # Formatting
 all_combined_data <- all_combined_data %>% 
-mutate(across(everything(), ~ str_replace_all(., "MAIC_roche", "MAIC (Roche)"))) %>%
+mutate(across(everything(), ~ str_replace_all(., "MAIC_roche", "MAIC"))) %>%
   mutate(across(everything(), ~ str_replace_all(., "Maicplus", "maicplus"))) %>%
   mutate(across(everything(), ~ str_replace_all(., "maicChecks_alternateWT", "maicChecks (alternate weights)")))
   
