@@ -136,7 +136,7 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
       ) %>%
       # Conditions for variables within 10 % 
       tab_footnote(
-        footnote = "The value of a variable is within 10% of the comparators value for the same variable",
+        footnote = "The value of a non-matched variable is within 10% of the comparators value for the same variable",
         locations = cells_body(
           columns = col,
           rows = (
@@ -189,9 +189,9 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
         table.font.size = px(10L)
       ) %>%
       # Footnote 
-      tab_footnote(
-        footnote = "ESS fill: Red = ESS is 50% or less than the original sample size. Yellow = ESS between 50% and 75%. Light green = ESS between 75% and 90%. Dark green = ESS is 90% or more of the original sample size."
-      ) %>%
+      # tab_footnote(
+      #   footnote = "ESS fill: Red = ESS is 50% or less than the original sample size. Yellow = ESS between 50% and 75%. Light green = ESS between 75% and 90%. Dark green = ESS is 90% or more of the original sample size."
+      # ) %>%
       tab_footnote(
         footnote = "Grey fill = The variable was not matched on."
       )
