@@ -97,34 +97,34 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
           rows = !results_df[[paste0(col, " indicator")]]
         )
       ) %>%
-      tab_style(
-        style = cell_fill(color = "red", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] < 50 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
-      tab_style(
-        style = cell_fill(color = "yellow", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] < 75 & results_df[[col]] > 50 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
-      tab_style(
-        style = cell_fill(color = "lightgreen", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] < 90 & results_df[[col]] > 75 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
-      tab_style(
-        style = cell_fill(color = "darkgreen", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] > 90 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "red", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] < 50 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "yellow", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] < 75 & results_df[[col]] > 50 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "lightgreen", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] < 90 & results_df[[col]] > 75 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "darkgreen", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] > 90 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
       tab_style(
         style = cell_text(color = "black"),
         locations = cells_body(
@@ -141,7 +141,7 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
           columns = col,
           rows = (
             abs(results_df[[col]] - results_df[[label_name]]) / results_df[[col]] <= 0.10
-          ) & results_df$Characteristic %in% chars_vars
+          ) & results_df$Characteristic %in% chars_vars & !results_df[[paste0(col, " indicator")]]
         )
       ) %>%
       # Make asterix instead of number 
