@@ -1,5 +1,4 @@
-# Script aim; 
-# The script 
+# Analysis script
 
 #***********************************************************************
 # Libraries ---------------------------------------------------------------
@@ -54,7 +53,7 @@ pacman::p_load(
 # Directories --------------------------------------------------------------
 #***********************************************************************
 
-# results folder - 1425 maic comparisons - project work - results 
+# Select where you wish to save the results
 if (!exists("results_folder")) {results_folder <- rstudioapi::selectDirectory()}
 
 #***********************************************************************
