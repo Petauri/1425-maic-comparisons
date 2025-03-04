@@ -1,5 +1,4 @@
-# Script aim; 
-# The script 
+# Make forest plot and present results
 
 #***********************************************************************
 # Libraries ---------------------------------------------------------------
@@ -50,7 +49,7 @@ pacman::p_load(
 # Directories --------------------------------------------------------------
 #***********************************************************************
 
-# results folder - 1425 maic comparisons - project work - results 
+# Select where you wish to save the results
 if (!exists("results_folder")) {results_folder <- rstudioapi::selectDirectory()}
 
 #***********************************************************************
@@ -71,7 +70,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-91"
+version <- "v1-0"
 
 #***********************************************************************
 # Read data ---------------------------------------------------
@@ -108,21 +107,6 @@ for (package in maic_packages) {
   maic_results[[package]]$package <- package
   
 }
-
-
-# Iterate over maic packages and read in the Excel files
-# for (i in seq_along(maic_packages)) {
-#   pkg <- maic_packages[i]
-#   file_path <- file.path(results_folder, version, pkg, paste0(pkg, "_outcome_summary.xlsx"))
-#   df <- read.xlsx(file_path)
-#   # Add a column with the package name
-#   df$package <- pkg
-#   maic_results[[i]] <- df
-# }
-# 
-# # Combine the dataframes into one dataframe
-# combined_df <- do.call(rbind, maic_results)
-# combined_df <- clean_names(combined_df)
 
 #*************************************************************
 # FOREST PLOT ------------------------------------------------

@@ -97,34 +97,34 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
           rows = !results_df[[paste0(col, " indicator")]]
         )
       ) %>%
-      tab_style(
-        style = cell_fill(color = "red", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] < 50 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
-      tab_style(
-        style = cell_fill(color = "yellow", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] < 75 & results_df[[col]] > 50 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
-      tab_style(
-        style = cell_fill(color = "lightgreen", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] < 90 & results_df[[col]] > 75 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
-      tab_style(
-        style = cell_fill(color = "darkgreen", alpha = 0.7),
-        locations = cells_body(
-          columns = col,
-          rows = results_df[[col]] > 90 & results_df$Characteristic == "ESS (%)"
-        )
-      ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "red", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] < 50 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "yellow", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] < 75 & results_df[[col]] > 50 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "lightgreen", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] < 90 & results_df[[col]] > 75 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
+      # tab_style(
+      #   style = cell_fill(color = "darkgreen", alpha = 0.7),
+      #   locations = cells_body(
+      #     columns = col,
+      #     rows = results_df[[col]] > 90 & results_df$Characteristic == "ESS (%)"
+      #   )
+      # ) %>%
       tab_style(
         style = cell_text(color = "black"),
         locations = cells_body(
@@ -136,12 +136,12 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
       ) %>%
       # Conditions for variables within 10 % 
       tab_footnote(
-        footnote = "The value of a variable is within 10% of the comparators value for the same variable",
+        footnote = "The value of a non-matched variable is within 10% of the comparators value for the same variable",
         locations = cells_body(
           columns = col,
           rows = (
             abs(results_df[[col]] - results_df[[label_name]]) / results_df[[col]] <= 0.10
-          ) & results_df$Characteristic %in% chars_vars
+          ) & results_df$Characteristic %in% chars_vars & !results_df[[paste0(col, " indicator")]]
         )
       ) %>%
       # Make asterix instead of number 
@@ -189,9 +189,9 @@ f_maic_pathway_figure <- function(directory_path, label_name, maic_package){
         table.font.size = px(10L)
       ) %>%
       # Footnote 
-      tab_footnote(
-        footnote = "ESS fill: Red = ESS is 50% or less than the original sample size. Yellow = ESS between 50% and 75%. Light green = ESS between 75% and 90%. Dark green = ESS is 90% or more of the original sample size."
-      ) %>%
+      # tab_footnote(
+      #   footnote = "ESS fill: Red = ESS is 50% or less than the original sample size. Yellow = ESS between 50% and 75%. Light green = ESS between 75% and 90%. Dark green = ESS is 90% or more of the original sample size."
+      # ) %>%
       tab_footnote(
         footnote = "Grey fill = The variable was not matched on."
       )

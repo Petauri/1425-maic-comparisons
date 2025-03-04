@@ -16,7 +16,8 @@ Research question: Do you get the same results when performing match-adjusted in
 
 ### Data 
 
+* All (simulated) data required to run the code is stored within the "/data" directory.
+
 ### Docs
 
-* Includes documents such as .docx files and PDFs
-* Statistical analysis plan
+* Includes documents such as .docx files and PDFs (none included).

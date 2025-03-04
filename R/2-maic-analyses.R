@@ -1,5 +1,4 @@
-# Script aim; 
-# The script 
+# Analysis script
 
 #***********************************************************************
 # Libraries ---------------------------------------------------------------
@@ -54,7 +53,7 @@ pacman::p_load(
 # Directories --------------------------------------------------------------
 #***********************************************************************
 
-# results folder - 1425 maic comparisons - project work - results 
+# Select where you wish to save the results
 if (!exists("results_folder")) {results_folder <- rstudioapi::selectDirectory()}
 
 #***********************************************************************
@@ -75,7 +74,7 @@ source("R/functions/maic/f_multi_maic_package.R")
 
 # VERSION OF RESULTS
 
-version <- "v0-91"
+version <- "v1-0"
 dir.create(file.path(results_folder, version),
            showWarnings = FALSE, recursive = TRUE)
 
